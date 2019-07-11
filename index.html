@@ -13,7 +13,25 @@
 		
 		<style type="text/css">
 			
-			html,body,ul,li{margin: 0; padding:0;}			
+			html,body,ul,li{margin: 0; padding:0;}		
+
+
+			/*提示有新内容*/
+			
+			#new_pl{
+				text-align:center;
+				font-size:1rem;
+				background:#C6EC50;
+				margin:-8px 0 0 0;
+				padding:0;
+			}
+			#new_pl>a{
+				text-decoration:none;
+				color:blue;
+				cursor:pointer;
+			}		
+
+		
 			
 
 			div.knowledge{
@@ -121,12 +139,14 @@
 		footer>a:hover{
 			color:red;
 		}
+		
+		
+		
 			
 		</style>
 	</head>
 	<body>
-	
-		<!-- 右侧部分：知识碎片 -->
+
 
 		<div class="knowledge">
 			<!--
@@ -136,16 +156,15 @@
 				<input placeholder="搜索功能开发中..." type="search" id="search_in">
 				<input type="button" value="搜索" id="btn_search" onclick="getSearchList()">
 			</p>
-			<hr>
+			
 			
 			
 			<h3><button onclick="location.href='input.html'" style="cursor:pointer;">知识碎片 · 戳此投稿</button></h3>
-			<!--
-				slogan-点击刷新
-			-->
-			<h4 style="text-align:center; cursor:pointer;" class="slogan" title="点击刷新">一 句 话 讲 述 一 个 知 识 点</h4>
-			
-			
+			<hr>
+			<!--提示新内容的布局-->
+			<p id="new_pl">
+				<a onclick="refresh()">有新内容,点击可以刷新查看</a>
+			</p>
 			<!--
 				知识列表容器
 			-->
@@ -177,6 +196,45 @@
 		<script src="common.js"></script>
 
 		<script>
+		
+			$("#new_pl").hide();
+		
+			console.log("init_lastwbid: ");
+			var init_lastwbid = 0;
+			var lastwbid = 0;
+			
+			getlastwbid();
+			
+			setInterval(getlastwbid,6600);
+			
+		
+			function getlastwbid(){
+				jQuery.ajax({
+					url:"lastwbid.php",
+					type:"get",
+					async:true,
+					dataType:'text',
+					success:function(data){
+						if(init_lastwbid == 0){  //打开页面第一次执行
+							init_lastwbid = data;
+							console.log(data);
+						}else{   //不是第一次执行
+							console.log(data);
+							lastwbid = data;
+							console.log("init_lastwbid:"+init_lastwbid);
+							if(data > init_lastwbid){
+								console.log("have new weibo");
+								$("#new_pl").slideDown(1000);
+							}
+						}
+						return data;
+					},
+					error:function(data){
+						
+					}
+				});
+			}
+		
 		
 			function getWeiboList(url, list_container_id){
 				var xhr = createXhr();
@@ -259,11 +317,14 @@
 
 			
 			/*
-				点击slogan，刷新页面
+				刷新
 			*/
-			jQuery(".slogan").click(function(){
-				location.reload();
-			});
+			function refresh(){
+				getWeiboList('list.php', 'container');
+				$('#new_pl').hide();
+				init_lastwbid = 0;
+				console.log("init_lastwbid:"+getlastwbid());
+			}
 			
 			
 			
